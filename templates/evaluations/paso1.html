@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% block title %}Paso 1: Factores relevantes - GUIOS Pro+{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h1>Paso 1: Factores Relevantes</h1>
+    <p class="subtitle">
+        Evaluando: <strong>{{ evaluacion.software }}</strong> —
+        indica qué tan importante es cada factor para esta evaluación puntual.
+    </p>
+</div>
+
+<form method="post">
+    {% csrf_token %}
+    {{ formset.management_form }}
+
+    <table class="tabla-factores">
+        <thead>
+            <tr>
+                <th>Factor</th>
+                <th>Dimensión</th>
+                <th>Import. Sugerida</th>
+                <th>Import. Relativa</th>
+                <th>Tu importancia</th>
+                <th>Alcance</th>
+                <th>Estado</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for ef, subform in filas %}
+            <tr>
+                <td>{{ ef.factor.nombre }}</td>
+                <td><span class="badge badge-dimension">{{ ef.factor.dimension.nombre }}</span></td>
+                <td>{{ ef.get_importancia_sugerida_snapshot_display }}</td>
+                <td>
+                    {% if ef.importancia_relativa %}
+                        {{ ef.get_importancia_relativa_display }}
+                    {% else %}
+                        —
+                    {% endif %}
+                </td>
+                <td>
+                    {{ subform.id }}
+                    <div class="opciones-inline">{{ subform.importancia_decisor }}</div>
+                    {% if subform.importancia_decisor.errors %}
+                        <p class="error">{{ subform.importancia_decisor.errors }}</p>
+                    {% endif %}
+                </td>
+                <td><span class="badge badge-{{ ef.alcance }}">{{ ef.get_alcance_display }}</span></td>
+                <td>
+                    <label class="toggle-switch" for="{{ subform.incluido.id_for_label }}">
+                        {{ subform.incluido }}
+                        <span class="toggle-switch-slider" aria-hidden="true"></span>
+                    </label>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="form-actions">
+        <button type="submit" class="btn btn-primary">Guardar y continuar →</button>
+    </div>
+</form>
+{% endblock %}

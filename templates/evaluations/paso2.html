@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+{% block title %}Paso 2: Subfactores - GUIOS Pro+{% endblock %}
+{% block content %}
+<div class="container">
+    <div class="page-header">
+        <h1>Paso 2: Evaluación de Subfactores</h1>
+        <p class="subtitle">
+            Evaluando: <strong>{{ evaluacion.software }}</strong> —
+            califica el cumplimiento de cada subfactor de los factores que salieron relevantes.
+        </p>
+    </div>
+
+    <form method="post">
+        {% csrf_token %}
+        {{ formset.management_form }}
+
+        {% for dimension, data in dimensiones.items %}
+            {% for entrada in data.factores %}
+                <div class="factor-card">
+                    
+                    <div class="factor-card-header">
+                        <div class="factor-header-info">
+                            <h3>{{ entrada.factor.factor.nombre }}</h3>
+                            <span class="badge">
+                                {{ dimension.nombre }}
+                            </span>
+                        </div>
+                        <div class="factor-header-meta">
+                            <span>Ponderación media: <strong class="promedio-display">{{ entrada.factor.ponderacion_media|default:'0.00' }}</strong></span>
+                            <span style="color: #bcbcbf; font-size: 0.75rem;">▼</span>
+                        </div>
+                    </div>
+
+                    <div class="factor-card-body">
+                        {% for evaluacion_subfactor, subform in entrada.filas %}
+                            <div class="campo-factor">
+                                
+                                <label class="campo-factor-label">
+                                    {{ evaluacion_subfactor.subfactor.nombre }}
+                                </label>
+                                
+                                <div class="valor-cumplimiento-options">
+                                    {{ subform.id }}
+                                    
+                                    {% for radio in subform.valor_cumplimiento %}
+                                        <label class="valor-cumplimiento-option">
+                                            <input type="radio" 
+                                                name="{{ radio.data.name }}" 
+                                                value="{{ radio.data.value }}" 
+                                                id="{{ radio.id_for_label }}" 
+                                                {% if radio.data.selected %}checked{% endif %}>
+                                            <span class="valor-cumplimiento-pill">
+                                                {{ radio.choice_label }}
+                                            </span>
+                                        </label>
+                                    {% endfor %}
+                                </div>
+
+                                {% if subform.valor_cumplimiento.errors %}
+                                    <div class="error" style="width: 100%; text-align: right; flex-basis: 100%;">
+                                        {{ subform.valor_cumplimiento.errors }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endfor %}
+        {% endfor %}
+
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">
+                Guardar Evaluación
+            </button>
+        </div>
+    </form>
+</div>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const factorCards = document.querySelectorAll('.factor-card');
+
+        factorCards.forEach(card => {
+            const radios = card.querySelectorAll('input[type="radio"]');
+            const displayPromedio = card.querySelector('.promedio-display');
+            const totalSubfactores = card.querySelectorAll('.campo-factor').length;
+
+            const actualizarPromedio = () => {
+                let suma = 0;
+                const seleccionados = card.querySelectorAll('input[type="radio"]:checked');
+                
+                seleccionados.forEach(radio => {
+                    // Convertimos a número. Si da error (NaN), usamos 0 como respaldo
+                    const valor = parseFloat(radio.value) || 0;
+                    suma += valor;
+                });
+
+                let promedio = 0;
+                if (totalSubfactores > 0) {
+                    promedio = suma / totalSubfactores;
+                }
+
+                if (displayPromedio) {
+                    displayPromedio.textContent = promedio.toFixed(2);
+                }
+            };
+
+            radios.forEach(radio => {
+                radio.addEventListener('change', actualizarPromedio);
+            });
+            
+            actualizarPromedio();
+        });
+    });
+</script>
+{% endblock %}

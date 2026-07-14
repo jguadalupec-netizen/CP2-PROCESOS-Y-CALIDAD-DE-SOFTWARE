@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+{% load l10n %}
+{% block title %}Paso 3: Resultado - GUIOS Pro+{% endblock %}
+{% block container_class %}container-ancho{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h1>Paso 3: Resultado y recomendación</h1>
+    <p class="subtitle">
+        Análisis FODA y recomendación final sobre la adopción de
+        <strong>{{ evaluacion.software }}</strong>.
+    </p>
+</div>
+
+<div class="recom-banner {{ nivel_css }}">
+    <div class="recom-banner-titulo">
+        Recomendación: Nivel {{ recomendacion.nivel }} — {{ recomendacion.get_nivel_display }}
+    </div>
+    <p class="recom-banner-texto">{{ recomendacion.texto }}</p>
+</div>
+
+<div class="stats-grid">
+    <div class="stat-tile stat-fortalezas">
+        <span class="stat-icon">↗</span>
+        <div>
+            <div class="stat-label">Fortalezas</div>
+            <div class="stat-valor">{{ recomendacion.total_fortalezas }}</div>
+        </div>
+    </div>
+    <div class="stat-tile stat-oportunidades">
+        <span class="stat-icon">⚡</span>
+        <div>
+            <div class="stat-label">Oportunidades</div>
+            <div class="stat-valor">{{ recomendacion.total_oportunidades }}</div>
+        </div>
+    </div>
+    <div class="stat-tile stat-debilidades">
+        <span class="stat-icon">⊘</span>
+        <div>
+            <div class="stat-label">Debilidades</div>
+            <div class="stat-valor">{{ recomendacion.total_debilidades }}</div>
+        </div>
+    </div>
+    <div class="stat-tile stat-amenazas">
+        <span class="stat-icon">⊘</span>
+        <div>
+            <div class="stat-label">Amenazas</div>
+            <div class="stat-valor">{{ recomendacion.total_amenazas }}</div>
+        </div>
+    </div>
+</div>
+
+<h2 class="seccion-titulo">Clasificación Detallada de Factores</h2>
+<div class="tabla-wrapper">
+    <table class="tabla-admin tabla-resultado">
+        <thead>
+            <tr>
+                <th>Factor</th>
+                <th>Dimensión</th>
+                <th>Ponderación</th>
+                <th>Clasificación FODA</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for fila in filas %}
+            <tr>
+                <td class="celda-nombre">{{ fila.factor.nombre }}</td>
+                <td>{{ fila.dimension }}</td>
+                <td>
+                    <div class="ponderacion-cell">
+                        <span class="ponderacion-valor">{{ fila.ponderacion|floatformat:1 }}/5</span>
+                        <div class="ponderacion-bar">
+                            <div class="ponderacion-bar-fill" style="width: {{ fila.porcentaje|unlocalize }}%;"></div>
+                        </div>
+                    </div>
+                </td>
+                <td><span class="badge badge-{{ fila.foda_css }}">{{ fila.foda }}</span></td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="4" class="tabla-vacia">
+                    No hay factores relevantes evaluados todavía. Revisa los pasos 1 y 2.
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div class="foda-grid">
+    {% for columna in foda_columnas %}
+    <div class="foda-columna {{ columna.css }}">
+        <h3 class="foda-columna-titulo">
+            <span>{{ columna.icono }}</span> {{ columna.titulo }}
+        </h3>
+        <ul class="foda-columna-lista">
+            {% for item in columna.items %}
+                <li><span>{{ item.nombre }}</span><strong>{{ item.ponderacion|floatformat:1 }}/5</strong></li>
+            {% empty %}
+                <li class="foda-columna-vacia">—</li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endfor %}
+</div>
+
+<div class="form-actions form-actions-left">
+    <a href="{% url 'recommendations:exportar' evaluacion.pk %}" class="btn btn-primary">⬇ Exportar reporte</a>
+</div>
+{% endblock %}

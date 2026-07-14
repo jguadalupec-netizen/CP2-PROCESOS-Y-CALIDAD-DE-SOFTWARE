@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}Cuestionario de importancia - GUIOS Pro+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    {% if es_primera_vez %}
+        <h1>Bienvenido a GUIOS Pro+</h1>
+        <p class="subtitle">
+            Antes de empezar, cuéntanos qué tan importante es cada factor para
+            <strong>{{ empresa.nombre }}</strong>. Esto se usará como referencia
+            ("Importancia Sugerida") en tus futuras evaluaciones de software, y
+            podrás editarlo cuando quieras desde tu perfil.
+        </p>
+    {% else %}
+        <h1>Editar importancia de factores</h1>
+        <p class="subtitle">
+            Actualiza qué tan importante es cada factor para
+            <strong>{{ empresa.nombre }}</strong>. Los cambios solo afectarán a
+            evaluaciones nuevas; las evaluaciones ya realizadas no se modifican.
+        </p>
+    {% endif %}
+</div>
+
+<form method="post" class="form-cuestionario">
+    {% csrf_token %}
+
+    {% for dimension, campos in form.factores_con_campos.items %}
+        <section class="dimension-group">
+            <h2>{{ dimension.nombre }}</h2>
+
+            {% for factor, campo in campos %}
+                <div class="campo-factor">
+                    <label class="campo-factor-label">{{ factor.nombre }}</label>
+                    <div class="campo-factor-opciones">
+                        {{ campo }}
+                    </div>
+                    {% if campo.errors %}
+                        <p class="error">{{ campo.errors }}</p>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        </section>
+    {% endfor %}
+
+    <div class="form-actions">
+        <button type="submit" class="btn btn-primary">Guardar</button>
+    </div>
+</form>
+{% endblock %}

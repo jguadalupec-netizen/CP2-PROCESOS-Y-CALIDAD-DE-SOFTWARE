@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}Nueva evaluación - GUIOS Pro+{% endblock %}
+{% block content %}
+<div class="auth-wrapper">
+    <div class="auth-card">
+        <h2 class="auth-card-heading">Nueva evaluación de software</h2>
+        <p class="auth-card-subtitle">Ingresa los datos del software que quieres evaluar</p>
+
+        <form method="post" class="auth-form">
+            {% csrf_token %}
+            <div class="campo">
+                <label for="{{ form.nombre.id_for_label }}">{{ form.nombre.label }}</label>
+                {{ form.nombre }}
+                {% if form.nombre.errors %}<p class="error">{{ form.nombre.errors }}</p>{% endif %}
+            </div>
+            <div class="campo">
+                <label for="{{ form.version.id_for_label }}">{{ form.version.label }}</label>
+                {{ form.version }}
+            </div>
+            <button type="submit" class="btn btn-primary btn-block">Comenzar evaluación →</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

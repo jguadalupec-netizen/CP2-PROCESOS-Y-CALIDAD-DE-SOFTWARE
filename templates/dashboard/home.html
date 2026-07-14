@@ -1,0 +1,150 @@
+{% extends "base.html" %}
+{% block title %}Dashboard - GUIOS Pro+{% endblock %}
+{% block container_class %}container-ancho{% endblock %}
+{% block content %}
+
+<div class="dashboard-header">
+    <h1 class="dashboard-greeting">Hola, {{ user.first_name|default:user.username }} 👋</h1>
+    {% if user.empresa %}
+        <p class="subtitle">{{ user.empresa.nombre }}</p>
+    {% endif %}
+</div>
+
+<div class="stats-grid stats-grid-3">
+    <div class="stat-tile stat-factores">
+        <span class="stat-icon">▦</span>
+        <div>
+            <div class="stat-label">Factores Registrados</div>
+            <div class="stat-valor">{{ factores_registrados }}</div>
+        </div>
+    </div>
+    <div class="stat-tile stat-completadas">
+        <span class="stat-icon">✓</span>
+        <div>
+            <div class="stat-label">Evaluaciones Completadas</div>
+            <div class="stat-valor">{{ evaluaciones_completadas }}</div>
+        </div>
+    </div>
+    <div class="stat-tile stat-pendientes">
+        <span class="stat-icon">⏳</span>
+        <div>
+            <div class="stat-label">Pendientes de evaluación</div>
+            <div class="stat-valor">{{ pendientes_evaluacion }}</div>
+        </div>
+    </div>
+</div>
+
+<div class="dashboard-row">
+    <div class="form-section">
+        <h2 class="form-section-title">Estado de la evaluación actual</h2>
+
+        {% if evaluacion_actual %}
+            <p class="subtitle" style="margin-top: -8px;">
+                <strong>{{ evaluacion_actual.software }}</strong>
+            </p>
+            <div class="stepper">
+                {% for paso in pasos_evaluacion_actual %}
+                    <div class="stepper-step stepper-{{ paso.estado }}">
+                        <div class="stepper-circle">
+                            {% if paso.estado == "completado" %}✓{% else %}{{ paso.numero }}{% endif %}
+                        </div>
+                        <div class="stepper-label">{{ paso.etiqueta }}</div>
+                    </div>
+                    {% if not forloop.last %}
+                        <div class="stepper-connector {% if paso.estado == 'completado' %}stepper-connector-completo{% endif %}"></div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        {% else %}
+            <p class="subtitle" style="margin-top: -8px;">
+                No tienes ninguna evaluación en progreso.
+                <a href="{% url 'evaluations:iniciar' %}">Iniciar una nueva evaluación →</a>
+            </p>
+        {% endif %}
+    </div>
+
+    <div class="form-section">
+        <h2 class="form-section-title">Distribución FODA</h2>
+        {% if total_foda %}
+            <div class="donut-chart-card">
+                <div class="donut-chart" style="background: {{ donut_gradient_css }};">
+                    <div class="donut-chart-hole">
+                        <span class="donut-chart-total">{{ total_foda }}</span>
+                        <span class="donut-chart-total-label">factores</span>
+                    </div>
+                </div>
+                <ul class="donut-legend">
+                    <li><span class="dot dot-fortaleza"></span> Fortalezas <strong>{{ totales_foda.fortalezas }}</strong></li>
+                    <li><span class="dot dot-oportunidad"></span> Oportunidades <strong>{{ totales_foda.oportunidades }}</strong></li>
+                    <li><span class="dot dot-debilidad"></span> Debilidades <strong>{{ totales_foda.debilidades }}</strong></li>
+                    <li><span class="dot dot-amenaza"></span> Amenazas <strong>{{ totales_foda.amenazas }}</strong></li>
+                </ul>
+            </div>
+        {% else %}
+            <p class="subtitle" style="margin-top: -8px;">
+                Aún no hay evaluaciones completadas para mostrar la distribución FODA.
+            </p>
+        {% endif %}
+    </div>
+</div>
+
+<h2 class="seccion-titulo">Últimos softwares evaluados</h2>
+<div class="tabla-wrapper">
+    <table class="tabla-admin">
+        <thead>
+            <tr>
+                <th>Software</th>
+                <th>Fecha</th>
+                <th>Puntaje</th>
+                <th>Estado</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for fila in ultimas_filas %}
+            <tr class="fila-clicable" data-href="{{ fila.url }}">
+                <td class="celda-nombre">
+                    <a href="{{ fila.url }}">{{ fila.evaluacion.software }}</a>
+                </td>
+                <td>{{ fila.evaluacion.fecha_actualizacion|date:"d M Y" }}</td>
+                <td>
+                    {% if fila.recomendacion and fila.recomendacion.puntaje_promedio is not None %}
+                        <strong>{{ fila.recomendacion.puntaje_promedio|floatformat:1 }}</strong>
+                        <span class="badge-nivel {{ fila.nivel_css }}">Nivel {{ fila.recomendacion.nivel }}</span>
+                    {% else %}
+                        —
+                    {% endif %}
+                </td>
+                <td>
+                    <span class="estado-pill {% if fila.evaluacion.estado == 'completada' %}estado-completada{% else %}estado-progreso{% endif %}">
+                        {{ fila.evaluacion.get_estado_display }}
+                    </span>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="4" class="tabla-vacia">Aún no tienes evaluaciones registradas.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div class="form-actions form-actions-left">
+    <a href="{% url 'onboarding:editar_importancia' %}" class="btn btn-secundario">Editar cuestionario de importancia</a>
+    <a href="{% url 'evaluations:iniciar' %}" class="btn btn-secundario">+ Nueva evaluación</a>
+    {% if continuar_url %}
+        <a href="{{ continuar_url }}" class="btn btn-primary">Continuar evaluación →</a>
+    {% endif %}
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('tr.fila-clicable').forEach(function (fila) {
+        fila.addEventListener('click', function (e) {
+            if (e.target.tagName.toLowerCase() === 'a') return;
+            window.location = fila.dataset.href;
+        });
+    });
+});
+</script>
+{% endblock %}

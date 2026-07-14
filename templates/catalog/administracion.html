@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block title %}Administración de factores - GUIOS Pro+{% endblock %}
+{% block container_class %}container-ancho{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h1>Administración de factores</h1>
+    <p class="subtitle">
+        Gestión y configuración de los parámetros maestros, factores y subfactores de evaluación y niveles de cumplimiento del sistema.
+    </p>
+</div>
+
+<div class="admin-toolbar">
+    <form method="get" class="admin-search">
+        <input type="search" name="q" value="{{ query }}" placeholder="Buscar por nombre o dimensión...">
+        {% if query %}
+            <a href="{% url 'catalog:administracion' %}" class="admin-search-clear" title="Limpiar búsqueda">×</a>
+        {% endif %}
+    </form>
+    <a href="{% url 'catalog:crear_factor' %}" class="btn btn-primary">+ Añadir nuevo factor</a>
+</div>
+
+<div class="tabla-wrapper">
+    <table class="tabla-admin">
+        <thead>
+            <tr>
+                <th>Factor</th>
+                <th>Dimensión</th>
+                <th>Importancia</th>
+                <th>Alcance</th>
+                <th>Subfactores</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for factor in factores %}
+            <tr class="{% if not factor.activo %}fila-inactiva{% endif %}">
+                <td class="celda-nombre">{{ factor.nombre }}</td>
+                <td>{{ factor.dimension.nombre }}</td>
+                <td>{{ factor.get_importancia_base_display }}</td>
+                <td><span class="badge badge-{{ factor.alcance }}">{{ factor.get_alcance_display }}</span></td>
+                <td>{{ factor.num_subfactores }} subfactor{{ factor.num_subfactores|pluralize:"," }}</td>
+                <td>
+                    <span class="estado-pill {% if factor.activo %}estado-activo{% else %}estado-inactivo{% endif %}">
+                        {% if factor.activo %}Activo{% else %}Inactivo{% endif %}
+                    </span>
+                </td>
+                <td>
+                    <div class="acciones-fila">
+                        <a href="{% url 'catalog:editar_factor' factor.pk %}" class="icon-btn" title="Editar">✎</a>
+                        <form method="post" action="{% url 'catalog:eliminar_factor' factor.pk %}"
+                              onsubmit="return confirm('¿Desactivar el factor «{{ factor.nombre|escapejs }}»? Podrás reactivarlo después editándolo.');">
+                            {% csrf_token %}
+                            <button type="submit" class="icon-btn icon-btn-danger" title="Desactivar">🗑</button>
+                        </form>
+                    </div>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="7" class="tabla-vacia">
+                    {% if query %}
+                        No se encontraron factores para «{{ query }}».
+                    {% else %}
+                        Aún no hay factores registrados en el catálogo.
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

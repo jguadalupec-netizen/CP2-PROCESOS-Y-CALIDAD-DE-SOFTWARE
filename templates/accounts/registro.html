@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% block title %}Solicitar acceso - GUIOS Pro+{% endblock %}
+{% block body_class %}auth-page{% endblock %}
+{% block content %}
+<div class="auth-page-wrapper">
+    <div class="auth-brand">
+        <div class="auth-brand-icon">🛡️</div>
+        <h1 class="auth-brand-title">GUIOS Pro+</h1>
+        <p class="auth-brand-subtitle">Sistema de Gobernanza de Software</p>
+    </div>
+
+    <div class="auth-card auth-card-ancha">
+        <h2 class="auth-card-heading">Registra tu empresa</h2>
+        <p class="auth-card-subtitle">Crea la cuenta administradora de tu organización</p>
+
+        <form method="post" class="auth-form">
+            {% csrf_token %}
+
+            <h3 class="form-section-title">Datos de la empresa</h3>
+            <div class="campo">
+                <label for="{{ form.empresa_nombre.id_for_label }}">{{ form.empresa_nombre.label }}</label>
+                {{ form.empresa_nombre }}
+                {% if form.empresa_nombre.errors %}<p class="error">{{ form.empresa_nombre.errors }}</p>{% endif %}
+            </div>
+            <div class="campo">
+                <label for="{{ form.sector.id_for_label }}">{{ form.sector.label }}</label>
+                {{ form.sector }}
+            </div>
+            <div class="campo">
+                <label for="{{ form.tamano.id_for_label }}">{{ form.tamano.label }}</label>
+                {{ form.tamano }}
+            </div>
+
+            <h3 class="form-section-title">Tu cuenta</h3>
+            <div class="campo">
+                <label for="{{ form.nombre_usuario.id_for_label }}">{{ form.nombre_usuario.label }}</label>
+                {{ form.nombre_usuario }}
+                {% if form.nombre_usuario.errors %}<p class="error">{{ form.nombre_usuario.errors }}</p>{% endif %}
+            </div>
+            <div class="campo">
+                <label for="{{ form.email.id_for_label }}">{{ form.email.label }}</label>
+                {{ form.email }}
+                {% if form.email.errors %}<p class="error">{{ form.email.errors }}</p>{% endif %}
+            </div>
+            <div class="campo">
+                <label for="{{ form.password1.id_for_label }}">{{ form.password1.label }}</label>
+                {{ form.password1 }}
+                {% if form.password1.errors %}<p class="error">{{ form.password1.errors }}</p>{% endif %}
+            </div>
+            <div class="campo">
+                <label for="{{ form.password2.id_for_label }}">{{ form.password2.label }}</label>
+                {{ form.password2 }}
+                {% if form.password2.errors %}<p class="error">{{ form.password2.errors }}</p>{% endif %}
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-block">Crear cuenta →</button>
+        </form>
+
+        <p class="auth-footer">
+            ¿Ya tienes cuenta? <a href="{% url 'accounts:login' %}">Inicia sesión</a>
+        </p>
+    </div>
+</div>
+{% endblock %}

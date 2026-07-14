@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+{% block title %}{% if es_nuevo %}Nuevo factor{% else %}Editar factor{% endif %} - GUIOS Pro+{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h1>{% if es_nuevo %}Añadir nuevo factor{% else %}Editar factor: {{ factor.nombre }}{% endif %}</h1>
+    <p class="subtitle">
+        <a href="{% url 'catalog:administracion' %}">← Volver a Administración de factores</a>
+    </p>
+</div>
+
+<form method="post" class="factor-form">
+    {% csrf_token %}
+
+    <div class="form-section">
+        <h2 class="form-section-title">Datos del factor</h2>
+
+        <div class="campo">
+            <label for="{{ form.nombre.id_for_label }}">{{ form.nombre.label }}</label>
+            {{ form.nombre }}
+            {% if form.nombre.errors %}<p class="error">{{ form.nombre.errors }}</p>{% endif %}
+        </div>
+
+        <div class="campo-grid">
+            <div class="campo">
+                <label for="{{ form.dimension.id_for_label }}">{{ form.dimension.label }}</label>
+                {{ form.dimension }}
+                {% if form.dimension.errors %}<p class="error">{{ form.dimension.errors }}</p>{% endif %}
+            </div>
+            <div class="campo">
+                <label for="{{ form.importancia_base.id_for_label }}">{{ form.importancia_base.label }}</label>
+                {{ form.importancia_base }}
+                {% if form.importancia_base.errors %}<p class="error">{{ form.importancia_base.errors }}</p>{% endif %}
+            </div>
+            <div class="campo">
+                <label for="{{ form.alcance.id_for_label }}">{{ form.alcance.label }}</label>
+                {{ form.alcance }}
+                {% if form.alcance.errors %}<p class="error">{{ form.alcance.errors }}</p>{% endif %}
+            </div>
+        </div>
+
+        <div class="campo">
+            <label for="{{ form.descripcion.id_for_label }}">{{ form.descripcion.label }}</label>
+            {{ form.descripcion }}
+            {% if form.descripcion.errors %}<p class="error">{{ form.descripcion.errors }}</p>{% endif %}
+        </div>
+
+        <div class="campo campo-checkbox">
+            <label>
+                {{ form.activo }}
+                {{ form.activo.label }}
+            </label>
+        </div>
+    </div>
+
+    <div class="form-section">
+        <h2 class="form-section-title">Subfactores</h2>
+        <p class="subtitle" style="margin-top: -8px;">
+            Criterios específicos que se evaluarán en el Paso 2 para este factor.
+        </p>
+
+        {{ formset.management_form }}
+
+        <div id="subfactores-filas">
+            {% for subform in formset.forms %}
+                <div class="subfactor-row{% if subform.instance.pk %}{% else %} subfactor-row-nueva{% endif %}">
+                    {{ subform.id }}
+                    <div class="campo subfactor-nombre-campo">
+                        {{ subform.nombre }}
+                        {% if subform.nombre.errors %}<p class="error">{{ subform.nombre.errors }}</p>{% endif %}
+                    </div>
+                    <label class="subfactor-activo">
+                        {{ subform.activo }} Activo
+                    </label>
+                    {% if subform.instance.pk %}
+                        <label class="subfactor-eliminar">
+                            {{ subform.DELETE }} Eliminar
+                        </label>
+                    {% else %}
+                        <button type="button" class="icon-btn icon-btn-danger btn-quitar-subfactor" title="Quitar fila">✕</button>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        </div>
+
+        <template id="subfactor-empty-template">
+            <div class="subfactor-row subfactor-row-nueva">
+                {{ formset.empty_form.id }}
+                <div class="campo subfactor-nombre-campo">
+                    {{ formset.empty_form.nombre }}
+                </div>
+                <label class="subfactor-activo">
+                    {{ formset.empty_form.activo }} Activo
+                </label>
+                <button type="button" class="icon-btn icon-btn-danger btn-quitar-subfactor" title="Quitar fila">✕</button>
+            </div>
+        </template>
+
+        <button type="button" id="btn-agregar-subfactor" class="btn btn-secundario">+ Añadir subfactor</button>
+    </div>
+
+    <div class="form-actions">
+        <a href="{% url 'catalog:administracion' %}" class="btn btn-secundario">Cancelar</a>
+        <button type="submit" class="btn btn-primary">Guardar factor</button>
+    </div>
+</form>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const filasContenedor = document.getElementById('subfactores-filas');
+    const totalFormsInput = document.querySelector('#id_subfactores-TOTAL_FORMS');
+    const template = document.getElementById('subfactor-empty-template').innerHTML;
+    const btnAgregar = document.getElementById('btn-agregar-subfactor');
+
+    function reindexar(html, index) {
+        return html.replace(/__prefix__/g, index);
+    }
+
+    btnAgregar.addEventListener('click', function () {
+        const index = parseInt(totalFormsInput.value, 10);
+        const wrapper = document.createElement('div');
+        wrapper.innerHTML = reindexar(template, index).trim();
+        filasContenedor.appendChild(wrapper.firstElementChild);
+        totalFormsInput.value = index + 1;
+    });
+
+    filasContenedor.addEventListener('click', function (e) {
+        if (e.target.classList.contains('btn-quitar-subfactor')) {
+            e.target.closest('.subfactor-row').remove();
+        }
+    });
+});
+</script>
+{% endblock %}

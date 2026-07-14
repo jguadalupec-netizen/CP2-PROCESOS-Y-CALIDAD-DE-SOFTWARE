@@ -1,0 +1,44 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}GUIOS Pro+{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'css/base.css' %}">
+</head>
+<body class="{% block body_class %}{% endblock %}">
+    <nav class="navbar">
+        <div class="navbar-left">
+            <div class="navbar-brand">GUIOS Pro+</div>
+            {% if user.is_authenticated %}
+            <div class="navbar-links">
+                <a href="{% url 'dashboard:home' %}" class="{% if request.resolver_match.app_name == 'dashboard' %}active{% endif %}">Dashboard</a>
+                <a href="{% url 'catalog:administracion' %}" class="{% if request.resolver_match.app_name == 'catalog' %}active{% endif %}">Administración</a>
+            </div>
+            {% endif %}
+        </div>
+        {% if user.is_authenticated %}
+        <div class="navbar-user">
+            {{ user.username }}
+            <form method="post" action="{% url 'accounts:logout' %}" class="logout-form">
+                {% csrf_token %}
+                <button type="submit" class="link-button">Salir</button>
+            </form>
+        </div>
+        {% endif %}
+    </nav>
+
+    {% if messages %}
+    <ul class="messages">
+        {% for message in messages %}
+        <li class="message {{ message.tags }}">{{ message }}</li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+
+    <main class="container {% block container_class %}{% endblock %}">
+        {% block content %}{% endblock %}
+    </main>
+</body>
+</html>
