@@ -9,9 +9,9 @@ class Recomendacion(models.Model):
     matriz de decisión (ver MATRIZ_RECOMENDACION_GUIOSAD_2021.xlsx).
     """
     NIVEL_CHOICES = [
-        ("A", "No es posible adoptar"),
+        ("A", "Adoptar"),
         ("B", "Es posible adoptar con reservas"),
-        ("C", "Adoptar"),
+        ("C", "No es posible adoptar"),
     ]
 
     evaluacion = models.OneToOneField(

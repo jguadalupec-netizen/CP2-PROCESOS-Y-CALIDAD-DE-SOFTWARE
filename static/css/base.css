@@ -401,6 +401,16 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--m
 .recom-banner-titulo { font-weight: 700; font-size: 1.05rem; margin-bottom: 4px; }
 .recom-banner-texto { margin: 0; font-size: 0.92rem; color: #444; line-height: 1.5; }
 
+.recom-banner-detalle {
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 1px solid rgba(31, 36, 48, 0.1);
+    font-size: 0.88rem;
+    color: #444;
+}
+.recom-banner-detalle ul { margin: 8px 0 0; padding-left: 18px; }
+.recom-banner-detalle li { margin-bottom: 4px; }
+
 .recom-banner.nivel-positivo { background: #e3f7ec; border-color: #b6e6cb; }
 .recom-banner.nivel-positivo .recom-banner-titulo { color: var(--exito); }
 .recom-banner.nivel-neutro { background: #fff8e6; border-color: #f3e0a3; }

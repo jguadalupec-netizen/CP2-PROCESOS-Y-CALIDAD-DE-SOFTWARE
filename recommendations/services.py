@@ -8,11 +8,9 @@ from .models import Recomendacion
 
 NIVEL_A = (
     "A",
-    "No es posible adoptar. Se han detectado amenazas y/o debilidades en factores cuya "
-    "importancia relativa es fundamental o importante, por lo tanto, es indispensable que "
-    "el decisor revise los subfactores que no cumplen con lo mínimo requerido para adoptar "
-    "la solución. Esta revisión consistiría en proporcionar recursos (humano, tecnológico, "
-    "económico, etc.) para mitigar en gran medida los subfactores con baja valoración.",
+    "Adoptar. Todos los factores han sido identificados como Oportunidades y/o Fortalezas. "
+    "Esto quiere decir que la organización cumple satisfactoriamente con la mayoría de "
+    "requisitos para adoptar la solución.",
 )
 NIVEL_B = (
     "B",
@@ -22,22 +20,24 @@ NIVEL_B = (
 )
 NIVEL_C = (
     "C",
-    "Adoptar. Todos los factores han sido identificados como Oportunidades y/o Fortalezas. "
-    "Esto quiere decir que la organización cumple satisfactoriamente con la mayoría de "
-    "requisitos para adoptar la solución.",
+    "No es posible adoptar. Se han detectado amenazas y/o debilidades en factores cuya "
+    "importancia relativa es fundamental o importante, por lo tanto, es indispensable que "
+    "el decisor revise los subfactores que no cumplen con lo mínimo requerido para adoptar "
+    "la solución. Esta revisión consistiría en proporcionar recursos (humano, tecnológico, "
+    "económico, etc.) para mitigar en gran medida los subfactores con baja valoración.",
 )
 
 FODA_NEGATIVO = {"Amenaza", "Debilidad"}
 FODA_POSITIVO = {"Fortaleza", "Oportunidad"}
 IMPORTANCIA_ALTA = {"Importante", "Fundamental"}
 
-# Clase CSS por nivel de recomendación (A peor -> C mejor), reutilizada
+# Clase CSS por nivel de recomendación (A mejor -> C peor), reutilizada
 # tanto en recommendations.views (banner del Paso 3) como en
 # dashboard.views (badge en "Últimos softwares evaluados").
 NIVEL_CSS = {
-    "A": "nivel-negativo",
+    "A": "nivel-positivo",
     "B": "nivel-neutro",
-    "C": "nivel-positivo",
+    "C": "nivel-negativo",
 }
 
 
@@ -77,11 +77,11 @@ def generar_recomendacion(evaluacion: Evaluacion) -> Recomendacion:
     )
 
     if hay_negativo_alta_importancia:
-        nivel, texto = NIVEL_A
+        nivel, texto = NIVEL_C
     elif hay_negativo_opcional:
         nivel, texto = NIVEL_B
     else:
-        nivel, texto = NIVEL_C
+        nivel, texto = NIVEL_A
 
     recomendacion, _ = Recomendacion.objects.update_or_create(
         evaluacion=evaluacion,

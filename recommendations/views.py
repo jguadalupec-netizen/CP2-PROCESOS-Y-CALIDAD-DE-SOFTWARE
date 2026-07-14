@@ -14,6 +14,8 @@ FODA_INFO = {
 }
 
 FODA_ORDEN = ["Fortaleza", "Oportunidad", "Debilidad", "Amenaza"]
+FODA_NEGATIVO = {"Debilidad", "Amenaza"}
+IMPORTANCIA_ALTA = {"Importante", "Fundamental"}
 
 
 @login_required
@@ -46,6 +48,7 @@ def resultado(request, evaluacion_id):
         ponderacion = ef.ponderacion_media or 0
         porcentaje = round(float(ponderacion) / 5 * 100, 1)
         info = FODA_INFO.get(ef.clasificacion_foda, {"css": "", "icono": "", "titulo": ef.clasificacion_foda})
+        importancia_relativa_txt = ef.get_importancia_relativa_display() if ef.importancia_relativa else ""
         fila = {
             "factor": ef.factor,
             "dimension": ef.factor.dimension.nombre,
@@ -53,6 +56,7 @@ def resultado(request, evaluacion_id):
             "porcentaje": porcentaje,
             "foda": ef.clasificacion_foda,
             "foda_css": info["css"],
+            "importancia_relativa": importancia_relativa_txt,
         }
         filas.append(fila)
         if ef.clasificacion_foda in foda_grupos:
@@ -72,12 +76,30 @@ def resultado(request, evaluacion_id):
         for clave in FODA_ORDEN
     ]
 
+    # Factores que explican por qué el nivel no es A (mejor): el sistema
+    # usa una lógica de "veto" donde un solo factor negativo (Debilidad
+    # o Amenaza) de importancia alta/opcional puede bajar el nivel aunque
+    # el puntaje promedio sea bueno. Se muestran aquí para que quede
+    # claro por qué, en vez de que Puntaje y Nivel parezcan contradecirse.
+    factores_criticos = []
+    if recomendacion.nivel == "C":
+        factores_criticos = [
+            f for f in filas
+            if f["foda"] in FODA_NEGATIVO and f["importancia_relativa"] in IMPORTANCIA_ALTA
+        ]
+    elif recomendacion.nivel == "B":
+        factores_criticos = [
+            f for f in filas
+            if f["foda"] in FODA_NEGATIVO and f["importancia_relativa"] == "Opcional"
+        ]
+
     return render(request, "recommendations/resultado.html", {
         "evaluacion": evaluacion,
         "recomendacion": recomendacion,
         "nivel_css": NIVEL_CSS.get(recomendacion.nivel, ""),
         "filas": filas,
         "foda_columnas": foda_columnas,
+        "factores_criticos": factores_criticos,
     })
 
 

@@ -16,6 +16,25 @@
         Recomendación: Nivel {{ recomendacion.nivel }} — {{ recomendacion.get_nivel_display }}
     </div>
     <p class="recom-banner-texto">{{ recomendacion.texto }}</p>
+
+    {% if factores_criticos %}
+    <div class="recom-banner-detalle">
+        <strong>
+            Este nivel se debe a
+            {{ factores_criticos|length }} factor{{ factores_criticos|length|pluralize:"es" }} puntual{{ factores_criticos|length|pluralize:"es" }}
+            (el promedio general puede verse bien y aun así bajar el nivel):
+        </strong>
+        <ul>
+            {% for f in factores_criticos %}
+            <li>
+                <strong>{{ f.factor.nombre }}</strong>
+                — <span class="badge badge-{{ f.foda_css }}">{{ f.foda }}</span>
+                ({{ f.ponderacion|floatformat:1 }}/5, importancia {{ f.importancia_relativa }})
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
 </div>
 
 <div class="stats-grid">

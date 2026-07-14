@@ -136,6 +136,16 @@ def paso2_subfactores(request, pk):
     """
     evaluacion = get_object_or_404(Evaluacion, pk=pk, empresa=request.user.empresa)
 
+    # El Paso 1 pre-calcula 'relevante' con valores por defecto desde el
+    # momento en que se crea la evaluación (antes de que el decisor
+    # revise/confirme nada), así que no basta con chequear que existan
+    # factores relevantes: hay que exigir que el Paso 1 ya haya sido
+    # enviado (paso_actual >= 2), o se podría saltar directo a este
+    # paso por URL sin pasar por el Paso 1.
+    if evaluacion.paso_actual < 2:
+        messages.warning(request, "Primero debes completar el Paso 1 de esta evaluación.")
+        return redirect("evaluations:paso1", pk=evaluacion.pk)
+
     factores_relevantes = (
         evaluacion.factores
         .filter(relevante=True, incluido=True)
