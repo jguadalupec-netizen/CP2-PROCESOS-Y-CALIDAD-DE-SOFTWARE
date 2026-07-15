@@ -33,6 +33,12 @@ DEBUG = config('DEBUG', default=False, cast=bool)
 
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='', cast=Csv())
 
+# Evidencia bibliográfica automatizada para la Importancia Sugerida (IS) de
+# los factores del catálogo (ver catalog.services). Sin API key configurada,
+# el sistema simplemente usa Factor.importancia_base (fallback).
+SCOPUS_API_KEY = config('SCOPUS_API_KEY', default='')
+SCOPUS_API_URL = config('SCOPUS_API_URL', default='https://api.elsevier.com/content/search/scopus')
+
 
 # Application definition
 
@@ -47,7 +53,6 @@ INSTALLED_APPS = [
     # Apps del proyecto GUIOS Pro+
     'accounts',
     'catalog',
-    'onboarding',
     'evaluations',
     'recommendations',
     'dashboard',
@@ -68,7 +73,6 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'onboarding.middleware.CuestionarioObligatorioMiddleware',
 ]
 
 ROOT_URLCONF = 'guiospro.urls'

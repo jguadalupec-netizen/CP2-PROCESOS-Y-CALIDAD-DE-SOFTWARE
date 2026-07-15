@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Reporte de evaluación - {{ evaluacion.software }}</title>
+<style>
+    @page {
+        size: A4;
+        margin: 2cm 1.8cm;
+    }
+    * { box-sizing: border-box; }
+    body {
+        font-family: "Helvetica", Arial, sans-serif;
+        color: #1f2430;
+        font-size: 10pt;
+        line-height: 1.5;
+    }
+
+    .encabezado {
+        border-bottom: 2px solid #4F46E5;
+        padding-bottom: 10px;
+        margin-bottom: 18px;
+    }
+    .encabezado h1 { margin: 0 0 4px; font-size: 17pt; color: #030213; }
+    .encabezado .subtitulo { margin: 0; color: #555; font-size: 9.5pt; }
+    .encabezado .meta { margin-top: 6px; font-size: 8.5pt; color: #888; }
+
+    .recom-banner {
+        border-radius: 4px;
+        padding: 12px 16px;
+        margin-bottom: 18px;
+        border: 1px solid #ddd;
+    }
+    .recom-banner.nivel-positivo { background-color: #eafaf0; border-color: #b6e6cb; }
+    .recom-banner.nivel-neutro { background-color: #fff8e6; border-color: #f3e0a3; }
+    .recom-banner.nivel-negativo { background-color: #fdecec; border-color: #f3b8b8; }
+    .recom-banner h2 { margin: 0 0 6px; font-size: 12.5pt; }
+    .recom-banner p { margin: 0; font-size: 9.5pt; }
+
+    .factores-criticos { margin-top: 10px; font-size: 9pt; }
+    .factores-criticos ul { margin: 6px 0 0; padding-left: 16px; }
+    .factores-criticos li { margin-bottom: 3px; }
+
+    table.stats-tabla {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 18px;
+    }
+    table.stats-tabla td {
+        border: 1px solid #ddd;
+        text-align: center;
+        padding: 10px 6px;
+        width: 25%;
+    }
+    table.stats-tabla .valor { font-size: 15pt; font-weight: bold; display: block; }
+    table.stats-tabla .label { font-size: 8pt; color: #666; }
+
+    h3.seccion { font-size: 11.5pt; margin: 20px 0 8px; color: #030213; }
+
+    table.tabla-reporte {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 9pt;
+        margin-bottom: 10px;
+    }
+    table.tabla-reporte th, table.tabla-reporte td {
+        border: 1px solid #ddd;
+        padding: 6px 8px;
+        text-align: left;
+    }
+    table.tabla-reporte th { background-color: #f5f5f9; font-weight: bold; }
+
+    .badge {
+        padding: 2px 7px;
+        border-radius: 3px;
+        font-size: 8pt;
+        font-weight: bold;
+    }
+    .badge-foda-fortaleza { background-color: #eef2ff; color: #4338ca; }
+    .badge-foda-oportunidad { background-color: #e3f7ec; color: #2e9e5b; }
+    .badge-foda-debilidad { background-color: #fdeaea; color: #d64545; }
+    .badge-foda-amenaza { background-color: #fdecdc; color: #c2650a; }
+
+    table.foda-tabla {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 8px;
+    }
+    table.foda-tabla td.foda-columna {
+        width: 50%;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        padding: 10px 12px;
+        vertical-align: top;
+    }
+    .foda-columna h4 { margin: 0 0 6px; font-size: 10pt; }
+    .foda-columna table.foda-items { width: 100%; font-size: 8.5pt; }
+    .foda-columna table.foda-items td { border-bottom: 1px solid #eee; padding: 3px 0; }
+    .foda-columna table.foda-items td.foda-item-valor { text-align: right; font-weight: bold; }
+
+    .pie-pagina { margin-top: 24px; font-size: 8pt; color: #999; text-align: center; }
+</style>
+</head>
+<body>
+    <div class="encabezado">
+        <h1>Reporte de Evaluación &mdash; {{ evaluacion.software }}</h1>
+        <p class="subtitulo">GUIOS Pro+ &middot; Analisis FODA y recomendacion de adopcion de software FLOSS</p>
+        <p class="meta">
+            Empresa: {{ evaluacion.empresa.nombre }}
+            &middot; Generado el {{ generado_en|date:"d/m/Y H:i" }}
+        </p>
+    </div>
+
+    <div class="recom-banner {{ nivel_css }}">
+        <h2>Recomendacion: Nivel {{ recomendacion.nivel }} &mdash; {{ recomendacion.get_nivel_display }}</h2>
+        <p>{{ recomendacion.texto }}</p>
+
+        {% if factores_criticos %}
+        <div class="factores-criticos">
+            <strong>
+                Este nivel se debe a
+                {{ factores_criticos|length }} factor{{ factores_criticos|length|pluralize:"es" }} puntual{{ factores_criticos|length|pluralize:"es" }}:
+            </strong>
+            <ul>
+                {% for f in factores_criticos %}
+                <li>
+                    {{ f.factor.nombre }} &mdash; {{ f.foda }}
+                    ({{ f.ponderacion|floatformat:1 }}/5, importancia {{ f.importancia_relativa }})
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+    </div>
+
+    <table class="stats-tabla">
+        <tr>
+            <td><span class="valor">{{ recomendacion.total_fortalezas }}</span><span class="label">Fortalezas</span></td>
+            <td><span class="valor">{{ recomendacion.total_oportunidades }}</span><span class="label">Oportunidades</span></td>
+            <td><span class="valor">{{ recomendacion.total_debilidades }}</span><span class="label">Debilidades</span></td>
+            <td><span class="valor">{{ recomendacion.total_amenazas }}</span><span class="label">Amenazas</span></td>
+        </tr>
+    </table>
+
+    <h3 class="seccion">Clasificacion detallada de factores</h3>
+    <table class="tabla-reporte">
+        <thead>
+            <tr>
+                <th>Factor</th>
+                <th>Dimension</th>
+                <th>Ponderacion</th>
+                <th>Clasificacion FODA</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for fila in filas %}
+            <tr>
+                <td>{{ fila.factor.nombre }}</td>
+                <td>{{ fila.dimension }}</td>
+                <td>{{ fila.ponderacion|floatformat:1 }}/5</td>
+                <td><span class="badge badge-{{ fila.foda_css }}">{{ fila.foda }}</span></td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="4">No hay factores relevantes evaluados todavia.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <h3 class="seccion">Resumen FODA</h3>
+    <table class="foda-tabla">
+        <tr>
+            {% for columna in foda_columnas %}
+            <td class="foda-columna">
+                <h4>{{ columna.titulo }}</h4>
+                <table class="foda-items">
+                    {% for item in columna.items %}
+                    <tr>
+                        <td>{{ item.nombre }}</td>
+                        <td class="foda-item-valor">{{ item.ponderacion|floatformat:1 }}/5</td>
+                    </tr>
+                    {% empty %}
+                    <tr><td>&mdash;</td></tr>
+                    {% endfor %}
+                </table>
+            </td>
+            {% if forloop.counter|divisibleby:2 and not forloop.last %}
+        </tr>
+        <tr>
+            {% endif %}
+            {% endfor %}
+        </tr>
+    </table>
+
+    <p class="pie-pagina">GUIOS Pro+ &mdash; Reporte generado automaticamente</p>
+</body>
+</html>

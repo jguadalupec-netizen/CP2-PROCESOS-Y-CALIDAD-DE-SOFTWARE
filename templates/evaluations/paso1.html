@@ -13,6 +13,7 @@
     {% csrf_token %}
     {{ formset.management_form }}
 
+    <div class="tabla-wrapper">
     <table class="tabla-factores">
         <thead>
             <tr>
@@ -27,11 +28,11 @@
         </thead>
         <tbody>
             {% for ef, subform in filas %}
-            <tr>
+            <tr data-is="{{ ef.importancia_sugerida_snapshot }}">
                 <td>{{ ef.factor.nombre }}</td>
                 <td><span class="badge badge-dimension">{{ ef.factor.dimension.nombre }}</span></td>
                 <td>{{ ef.get_importancia_sugerida_snapshot_display }}</td>
-                <td>
+                <td class="ir-valor">
                     {% if ef.importancia_relativa %}
                         {{ ef.get_importancia_relativa_display }}
                     {% else %}
@@ -40,7 +41,15 @@
                 </td>
                 <td>
                     {{ subform.id }}
-                    <div class="opciones-inline">{{ subform.importancia_decisor }}</div>
+                    <div class="escala-slider-wrap escala-slider-wrap--importancia">
+                        <div class="escala-slider-numeros">
+                            <span class="escala-slider-numero" data-valor="1">1</span>
+                            <span class="escala-slider-numero" data-valor="2">2</span>
+                            <span class="escala-slider-numero" data-valor="3">3</span>
+                            <span class="escala-slider-numero" data-valor="4">4</span>
+                        </div>
+                        {{ subform.importancia_decisor }}
+                    </div>
                     {% if subform.importancia_decisor.errors %}
                         <p class="error">{{ subform.importancia_decisor.errors }}</p>
                     {% endif %}
@@ -56,9 +65,49 @@
             {% endfor %}
         </tbody>
     </table>
+    </div>
 
     <div class="form-actions">
         <button type="submit" class="btn btn-primary">Guardar y continuar →</button>
     </div>
 </form>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const COLORES_IMPORTANCIA = {
+        '1': 'linear-gradient(135deg, #94a3b8, #64748b)',
+        '2': 'linear-gradient(135deg, #f59e0b, #d97706)',
+        '3': 'linear-gradient(135deg, #3b82f6, #2563eb)',
+        '4': 'linear-gradient(135deg, #4F46E5, #7C3AED)',
+    };
+    // Mismas etiquetas que EvaluacionFactor.NIVEL_CHOICES (escala 1-4).
+    const ETIQUETAS_IMPORTANCIA = {1: 'Irrelevante', 2: 'Opcional', 3: 'Importante', 4: 'Fundamental'};
+
+    document.querySelectorAll('.escala-slider-wrap').forEach(function (wrap) {
+        const slider = wrap.querySelector('.escala-slider');
+        const numeros = wrap.querySelectorAll('.escala-slider-numero');
+        if (!slider) return;
+
+        const fila = slider.closest('tr');
+        const celdaRelativa = fila ? fila.querySelector('.ir-valor') : null;
+        const importanciaSugerida = fila ? parseInt(fila.dataset.is, 10) : null;
+
+        const actualizar = function () {
+            numeros.forEach(function (span) {
+                span.classList.toggle('activo', span.dataset.valor === slider.value);
+            });
+            slider.style.setProperty('--valor-color', COLORES_IMPORTANCIA[slider.value] || '');
+
+            // IR = floor((IS+ID)/2), igual que evaluations.services.calcular_importancia_relativa,
+            // recalculado en vivo mientras se arrastra el slider (antes de guardar).
+            if (celdaRelativa && !Number.isNaN(importanciaSugerida)) {
+                const decisor = parseInt(slider.value, 10);
+                const relativa = Math.floor((importanciaSugerida + decisor) / 2);
+                celdaRelativa.textContent = ETIQUETAS_IMPORTANCIA[relativa] || '—';
+            }
+        };
+        slider.addEventListener('input', actualizar);
+        actualizar();
+    });
+});
+</script>
 {% endblock %}

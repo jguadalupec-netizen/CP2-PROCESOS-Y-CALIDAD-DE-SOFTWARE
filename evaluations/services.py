@@ -15,8 +15,16 @@ def calcular_importancia_relativa(importancia_sugerida: int, importancia_decisor
 
 def es_relevante(importancia_relativa: int) -> bool:
     """
-    Un factor es relevante si su importancia relativa supera 'Opcional'.
-    Equivale a Guiosad.relevant().
+    Un factor es relevante si su importancia relativa es 'Importante' o
+    'Fundamental' (> 2 en la escala 1-4: Irrelevante/Opcional/Importante/
+    Fundamental).
+
+    Antes se exigía solo 'Fundamental' (> 3), igual que Guiosad.relevant()
+    en guiosad.py. Pero con los valores reales del catálogo (importancia_base
+    solo vale 2 o 3 para los 18 factores; ninguno es 4) IS nunca puede pasar
+    de 3, así que IR = floor((IS+ID)/2) nunca podía llegar a 4 y ningún
+    factor calificaba como relevante nunca. Se bajó el umbral para que el
+    Paso 2 sea alcanzable con los datos reales del sistema.
     """
     return importancia_relativa > 2
 

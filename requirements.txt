@@ -1,4 +1,5 @@
 Django>=5.0,<6.0
 Pillow
-weasyprint
+xhtml2pdf
 python-decouple
+requests

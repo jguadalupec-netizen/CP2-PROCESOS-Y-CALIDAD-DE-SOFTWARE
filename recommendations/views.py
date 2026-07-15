@@ -1,6 +1,14 @@
+from io import BytesIO
+
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404, redirect
+from django.template.loader import render_to_string
+from django.utils import timezone
+from django.utils.text import slugify
+from xhtml2pdf import pisa
+
 from evaluations.models import Evaluacion
 from .services import generar_recomendacion, NIVEL_CSS
 
@@ -18,9 +26,14 @@ FODA_NEGATIVO = {"Debilidad", "Amenaza"}
 IMPORTANCIA_ALTA = {"Importante", "Fundamental"}
 
 
-@login_required
-def resultado(request, evaluacion_id):
-    """Pantallas 5/6: Resultado y recomendación (clasificación FODA)."""
+def _contexto_resultado(request, evaluacion_id):
+    """
+    Arma el contexto del Paso 3 (recomendación + clasificación FODA),
+    compartido entre la pantalla de resultado y la exportación a PDF.
+
+    Retorna (evaluacion, contexto). Si la evaluación todavía no llegó al
+    Paso 3, contexto es None y el caller decide cómo redirigir.
+    """
     evaluacion = get_object_or_404(Evaluacion, pk=evaluacion_id, empresa=request.user.empresa)
 
     # El dictamen solo tiene sentido una vez completados los pasos 1 y 2;
@@ -28,9 +41,7 @@ def resultado(request, evaluacion_id):
     # una evaluación a la que se accedió directamente por URL sin
     # terminar los pasos previos.
     if evaluacion.paso_actual < 3 and evaluacion.estado != "completada":
-        messages.warning(request, "Primero debes completar los pasos 1 y 2 de esta evaluación.")
-        destino = "evaluations:paso1" if evaluacion.paso_actual < 2 else "evaluations:paso2"
-        return redirect(destino, pk=evaluacion.pk)
+        return evaluacion, None
 
     recomendacion = generar_recomendacion(evaluacion)
 
@@ -93,18 +104,50 @@ def resultado(request, evaluacion_id):
             if f["foda"] in FODA_NEGATIVO and f["importancia_relativa"] == "Opcional"
         ]
 
-    return render(request, "recommendations/resultado.html", {
+    contexto = {
         "evaluacion": evaluacion,
         "recomendacion": recomendacion,
         "nivel_css": NIVEL_CSS.get(recomendacion.nivel, ""),
         "filas": filas,
         "foda_columnas": foda_columnas,
         "factores_criticos": factores_criticos,
-    })
+    }
+    return evaluacion, contexto
+
+
+def _redirigir_paso_incompleto(request, evaluacion):
+    messages.warning(request, "Primero debes completar los pasos 1 y 2 de esta evaluación.")
+    destino = "evaluations:paso1" if evaluacion.paso_actual < 2 else "evaluations:paso2"
+    return redirect(destino, pk=evaluacion.pk)
+
+
+@login_required
+def resultado(request, evaluacion_id):
+    """Pantallas 5/6: Resultado y recomendación (clasificación FODA)."""
+    evaluacion, contexto = _contexto_resultado(request, evaluacion_id)
+    if contexto is None:
+        return _redirigir_paso_incompleto(request, evaluacion)
+
+    return render(request, "recommendations/resultado.html", contexto)
 
 
 @login_required
 def exportar_reporte(request, evaluacion_id):
-    """Exporta el resultado en PDF (botón 'Exportar reporte')."""
-    # TODO: usar weasyprint para generar el PDF a partir de resultado.html.
-    return resultado(request, evaluacion_id)
+    """Exporta el resultado del Paso 3 en PDF (botón 'Exportar reporte')."""
+    evaluacion, contexto = _contexto_resultado(request, evaluacion_id)
+    if contexto is None:
+        return _redirigir_paso_incompleto(request, evaluacion)
+
+    contexto["generado_en"] = timezone.now()
+    html = render_to_string("recommendations/resultado_pdf.html", contexto, request=request)
+
+    buffer = BytesIO()
+    pdf = pisa.pisaDocument(BytesIO(html.encode("UTF-8")), buffer)
+    if pdf.err:
+        messages.error(request, "No se pudo generar el PDF del reporte. Intenta de nuevo.")
+        return redirect("recommendations:resultado", evaluacion_id=evaluacion.pk)
+
+    nombre_archivo = f"reporte-{slugify(str(evaluacion.software))}-{evaluacion.pk}.pdf"
+    response = HttpResponse(buffer.getvalue(), content_type="application/pdf")
+    response["Content-Disposition"] = f'attachment; filename="{nombre_archivo}"'
+    return response

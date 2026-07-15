@@ -14,9 +14,9 @@ class DimensionAdmin(admin.ModelAdmin):
 
 @admin.register(Factor)
 class FactorAdmin(admin.ModelAdmin):
-    list_display = ("nombre", "dimension", "alcance", "activo")
+    list_display = ("nombre", "dimension", "importancia_base", "termino_busqueda_en", "alcance", "activo")
     list_filter = ("dimension", "alcance", "activo")
-    search_fields = ("nombre",)
+    search_fields = ("nombre", "termino_busqueda_en")
     inlines = [SubfactorInline]
 
 

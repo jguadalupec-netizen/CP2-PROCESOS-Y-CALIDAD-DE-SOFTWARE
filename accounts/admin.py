@@ -5,8 +5,8 @@ from .models import Empresa, Usuario
 
 @admin.register(Empresa)
 class EmpresaAdmin(admin.ModelAdmin):
-    list_display = ("nombre", "sector", "tamano", "cuestionario_completado", "fecha_registro")
-    list_filter = ("sector", "tamano", "cuestionario_completado")
+    list_display = ("nombre", "sector", "tamano", "fecha_registro")
+    list_filter = ("sector", "tamano")
     search_fields = ("nombre",)
 
 

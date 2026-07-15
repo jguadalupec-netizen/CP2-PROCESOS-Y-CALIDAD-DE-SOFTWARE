@@ -27,9 +27,6 @@ class Empresa(models.Model):
     tamano = models.CharField(max_length=20, choices=TAMANO_CHOICES, default="pequena")
     fecha_registro = models.DateTimeField(auto_now_add=True)
 
-    # Bandera para saber si ya completó el cuestionario inicial de importancia
-    cuestionario_completado = models.BooleanField(default=False)
-
     class Meta:
         verbose_name = "Empresa"
         verbose_name_plural = "Empresas"

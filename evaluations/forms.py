@@ -3,6 +3,11 @@ from django import forms
 from .models import EvaluacionFactor, EvaluacionSubfactor, SoftwareEvaluado
 
 
+class RangeInput(forms.NumberInput):
+    """Slider nativo (<input type="range">) para las escalas 1-4 y 1-5."""
+    input_type = "range"
+
+
 class IniciarEvaluacionForm(forms.ModelForm):
     """Datos mínimos para arrancar una nueva Evaluacion (Pantalla 'Nueva evaluación')."""
 
@@ -28,7 +33,7 @@ EvaluacionFactorFormSet = forms.modelformset_factory(
     fields=("importancia_decisor", "incluido"),
     extra=0,
     widgets={
-        "importancia_decisor": forms.RadioSelect(choices=EvaluacionFactor.NIVEL_CHOICES),
+        "importancia_decisor": RangeInput(attrs={"min": 1, "max": 4, "step": 1, "class": "escala-slider"}),
         "incluido": forms.CheckboxInput(attrs={"class": "toggle-switch-input"}),
     },
 )
@@ -43,6 +48,6 @@ EvaluacionSubfactorFormSet = forms.modelformset_factory(
     fields=("valor_cumplimiento",),
     extra=0,
     widgets={
-        "valor_cumplimiento": forms.RadioSelect(choices=EvaluacionSubfactor.NIVEL_CHOICES),
+        "valor_cumplimiento": RangeInput(attrs={"min": 1, "max": 5, "step": 1, "class": "escala-slider"}),
     },
 )

@@ -10,7 +10,12 @@
 <body class="{% block body_class %}{% endblock %}">
     <nav class="navbar">
         <div class="navbar-left">
-            <div class="navbar-brand">GUIOS Pro+</div>
+            <div class="navbar-brand">
+                <span class="navbar-brand-icon">🛡️</span>
+                <span class="navbar-brand-titles">
+                    GUIOS Pro+
+                </span>
+            </div>
             {% if user.is_authenticated %}
             <div class="navbar-links">
                 <a href="{% url 'dashboard:home' %}" class="{% if request.resolver_match.app_name == 'dashboard' %}active{% endif %}">Dashboard</a>
@@ -20,7 +25,11 @@
         </div>
         {% if user.is_authenticated %}
         <div class="navbar-user">
-            {{ user.username }}
+            <div class="navbar-user-info">
+                <div class="navbar-user-name">{{ user.username }}</div>
+                {% if user.empresa %}<div class="navbar-user-empresa">{{ user.empresa.nombre }}</div>{% endif %}
+            </div>
+            <span class="navbar-avatar">{{ user.username|slice:":1"|upper }}</span>
             <form method="post" action="{% url 'accounts:logout' %}" class="logout-form">
                 {% csrf_token %}
                 <button type="submit" class="link-button">Salir</button>

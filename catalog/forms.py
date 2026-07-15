@@ -6,11 +6,15 @@ from .models import Dimension, Factor, Subfactor
 class FactorForm(forms.ModelForm):
     class Meta:
         model = Factor
-        fields = ["nombre", "dimension", "importancia_base", "alcance", "descripcion", "activo"]
+        fields = [
+            "nombre", "dimension", "importancia_base", "termino_busqueda_en",
+            "alcance", "descripcion", "activo",
+        ]
         labels = {
             "nombre": "Nombre del factor",
             "dimension": "Dimensión",
             "importancia_base": "Importancia sugerida",
+            "termino_busqueda_en": "Término de búsqueda (Scopus, en inglés)",
             "alcance": "Alcance",
             "descripcion": "Descripción",
             "activo": "Factor activo",
@@ -19,6 +23,7 @@ class FactorForm(forms.ModelForm):
             "nombre": forms.TextInput(attrs={"placeholder": "Ej. Compatibilidad"}),
             "dimension": forms.Select(),
             "importancia_base": forms.Select(),
+            "termino_busqueda_en": forms.TextInput(attrs={"placeholder": "Ej. Compatibility (opcional)"}),
             "alcance": forms.Select(),
             "descripcion": forms.Textarea(attrs={"rows": 3, "placeholder": "Descripción opcional del factor..."}),
         }

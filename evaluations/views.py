@@ -4,7 +4,7 @@ from django.db import transaction
 from django.shortcuts import get_object_or_404, redirect, render
 
 from catalog.models import Factor, Subfactor
-from onboarding.models import PerfilImportanciaFactor
+from catalog.services import calcular_importancia_sugerida
 
 from .forms import EvaluacionFactorFormSet, EvaluacionSubfactorFormSet, IniciarEvaluacionForm
 from .models import Evaluacion, EvaluacionFactor, EvaluacionSubfactor
@@ -21,8 +21,11 @@ from .services import (
 def iniciar_evaluacion(request):
     """
     Crea el SoftwareEvaluado + Evaluacion, y "congela" (snapshot) la
-    Importancia Sugerida actual (onboarding.PerfilImportanciaFactor) de
-    cada Factor activo hacia EvaluacionFactor.importancia_sugerida_snapshot.
+    Importancia Sugerida (IS) de cada Factor activo hacia
+    EvaluacionFactor.importancia_sugerida_snapshot. IS se calcula con
+    catalog.services.calcular_importancia_sugerida (evidencia bibliográfica
+    de Scopus combinada con Factor.importancia_base; ver ese módulo para
+    el fallback si Scopus no está disponible).
     """
     empresa = request.user.empresa
     if empresa is None:
@@ -45,17 +48,10 @@ def iniciar_evaluacion(request):
             )
 
             factores_activos = Factor.objects.filter(activo=True).select_related("dimension")
-            perfiles = {
-                p.factor_id: p.importancia
-                for p in PerfilImportanciaFactor.objects.filter(empresa=empresa)
-            }
 
             nuevos = []
             for factor in factores_activos:
-                # Si la empresa aún no respondió el cuestionario para este
-                # factor (p.ej. factor nuevo en el catálogo), se usa la
-                # importancia base/sugerida definida en Administración.
-                sugerida = perfiles.get(factor.id, factor.importancia_base)
+                sugerida = calcular_importancia_sugerida(factor)
                 # EvaluacionFactor solo maneja interno/externo; los factores
                 # "Ambos" del catálogo se tratan como externos para fines
                 # de clasificación FODA (simplificación, ajustable a futuro).

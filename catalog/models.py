@@ -43,9 +43,21 @@ class Factor(models.Model):
         default=2,
         verbose_name="Importancia sugerida",
         help_text=(
-            "Valor de partida del catálogo (equivalente a 'Sugerida' en factors.csv). "
-            "Se usa como respuesta por defecto del cuestionario de importancia para "
-            "empresas/factores nuevos, antes de que el decisor la ajuste."
+            "Valor experto de partida del catálogo (equivalente a 'Sugerida' en "
+            "factors.csv). Se combina con la evidencia bibliográfica de Scopus "
+            "(ver catalog.services.calcular_importancia_sugerida) para calcular "
+            "la Importancia Sugerida (IS) de cada nueva evaluación; si Scopus no "
+            "está disponible, este valor se usa tal cual."
+        ),
+    )
+    termino_busqueda_en = models.CharField(
+        max_length=150,
+        blank=True,
+        verbose_name="Término de búsqueda (Scopus, en inglés)",
+        help_text=(
+            "Término en inglés usado para consultar evidencia bibliográfica en "
+            "Scopus (la literatura indexada es mayormente en inglés). Si se deja "
+            "vacío, se usa el nombre del factor tal cual."
         ),
     )
     alcance = models.CharField(max_length=10, choices=ALCANCE_CHOICES, default="interno")

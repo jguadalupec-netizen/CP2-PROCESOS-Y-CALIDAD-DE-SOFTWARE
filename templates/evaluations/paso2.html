@@ -39,21 +39,16 @@
                                     {{ evaluacion_subfactor.subfactor.nombre }}
                                 </label>
                                 
-                                <div class="valor-cumplimiento-options">
+                                <div class="escala-slider-wrap escala-slider-wrap--cumplimiento">
+                                    <div class="escala-slider-numeros">
+                                        <span class="escala-slider-numero" data-valor="1">1</span>
+                                        <span class="escala-slider-numero" data-valor="2">2</span>
+                                        <span class="escala-slider-numero" data-valor="3">3</span>
+                                        <span class="escala-slider-numero" data-valor="4">4</span>
+                                        <span class="escala-slider-numero" data-valor="5">5</span>
+                                    </div>
                                     {{ subform.id }}
-                                    
-                                    {% for radio in subform.valor_cumplimiento %}
-                                        <label class="valor-cumplimiento-option">
-                                            <input type="radio" 
-                                                name="{{ radio.data.name }}" 
-                                                value="{{ radio.data.value }}" 
-                                                id="{{ radio.id_for_label }}" 
-                                                {% if radio.data.selected %}checked{% endif %}>
-                                            <span class="valor-cumplimiento-pill">
-                                                {{ radio.choice_label }}
-                                            </span>
-                                        </label>
-                                    {% endfor %}
+                                    {{ subform.valor_cumplimiento }}
                                 </div>
 
                                 {% if subform.valor_cumplimiento.errors %}
@@ -77,21 +72,40 @@
 </div>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
+        const COLORES_CUMPLIMIENTO = {
+            '1': 'linear-gradient(135deg, #ef4444, #dc2626)',
+            '2': 'linear-gradient(135deg, #f97316, #ea580c)',
+            '3': 'linear-gradient(135deg, #eab308, #ca8a04)',
+            '4': 'linear-gradient(135deg, #3b82f6, #2563eb)',
+            '5': 'linear-gradient(135deg, #10b981, #059669)',
+        };
+
+        document.querySelectorAll('.escala-slider-wrap').forEach(function (wrap) {
+            const slider = wrap.querySelector('.escala-slider');
+            const numeros = wrap.querySelectorAll('.escala-slider-numero');
+            if (!slider) return;
+            const marcarActivo = function () {
+                numeros.forEach(function (span) {
+                    span.classList.toggle('activo', span.dataset.valor === slider.value);
+                });
+                slider.style.setProperty('--valor-color', COLORES_CUMPLIMIENTO[slider.value] || '');
+            };
+            slider.addEventListener('input', marcarActivo);
+            marcarActivo();
+        });
+
         const factorCards = document.querySelectorAll('.factor-card');
 
         factorCards.forEach(card => {
-            const radios = card.querySelectorAll('input[type="radio"]');
+            const sliders = card.querySelectorAll('.escala-slider');
             const displayPromedio = card.querySelector('.promedio-display');
-            const totalSubfactores = card.querySelectorAll('.campo-factor').length;
+            const totalSubfactores = sliders.length;
 
             const actualizarPromedio = () => {
                 let suma = 0;
-                const seleccionados = card.querySelectorAll('input[type="radio"]:checked');
-                
-                seleccionados.forEach(radio => {
-                    // Convertimos a número. Si da error (NaN), usamos 0 como respaldo
-                    const valor = parseFloat(radio.value) || 0;
-                    suma += valor;
+
+                sliders.forEach(slider => {
+                    suma += parseFloat(slider.value) || 0;
                 });
 
                 let promedio = 0;
@@ -104,10 +118,10 @@
                 }
             };
 
-            radios.forEach(radio => {
-                radio.addEventListener('change', actualizarPromedio);
+            sliders.forEach(slider => {
+                slider.addEventListener('input', actualizarPromedio);
             });
-            
+
             actualizarPromedio();
         });
     });

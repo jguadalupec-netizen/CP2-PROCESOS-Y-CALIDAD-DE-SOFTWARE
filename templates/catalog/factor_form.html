@@ -39,6 +39,15 @@
         </div>
 
         <div class="campo">
+            <label for="{{ form.termino_busqueda_en.id_for_label }}">{{ form.termino_busqueda_en.label }}</label>
+            {{ form.termino_busqueda_en }}
+            <p class="subtitle" style="margin-top: 4px;">
+                Usado para automatizar la Importancia Sugerida con evidencia de Scopus. Si se deja vacío, se usa el nombre del factor tal cual.
+            </p>
+            {% if form.termino_busqueda_en.errors %}<p class="error">{{ form.termino_busqueda_en.errors }}</p>{% endif %}
+        </div>
+
+        <div class="campo">
             <label for="{{ form.descripcion.id_for_label }}">{{ form.descripcion.label }}</label>
             {{ form.descripcion }}
             {% if form.descripcion.errors %}<p class="error">{{ form.descripcion.errors }}</p>{% endif %}
